@@ -2,12 +2,12 @@
 
 const restify = require("restify");
 const builder = require("botbuilder");
-const config = require("./config");
-const fetch = require("node-fetch");
-const moment = require("moment");
 const fs = require("fs");
 const path = require("path");
-const sanitizeHtml = require('sanitize-html');
+const WeatherService = require("./services/weather");
+const JokeService = require("./services/joke");
+const StockService = require("./services/stock");
+const config = require("./config");
 
 //=========================================================
 // Bot Setup
@@ -107,26 +107,16 @@ bot.dialog("stock", [
 				symbol = "USDRUB";
 				break;
 		}
-		let time = Math.round(moment().valueOf() / 1000);
-		let from = Math.round(moment().subtract(48, "hours").valueOf() / 1000);
-		let response = await fetch("http://jq.forexpf.ru/html/tw/history?symbol=" + symbol + "&resolution=60&from=" + from + "&to=" + time);
-
-		let stock = await response.json();
-		let timeLabels = stock.t.map(item => {
-			//return moment(item * 1000, "x").format("HH DD:MM");
-			return "";
-		});
-		let chartFilename = await createChart(timeLabels, stock.c);
-		//console.log("created chart", config.server.external.uri + "/files/" + chartFilename);
+		let st = await StockService.get(symbol);
 		let msg = new builder.Message(session)
 			.attachments([
 				new builder.HeroCard(session)
-					.title(symbol + " → " + stock.c[stock.c.length - 1])
-					.subtitle(moment(stock.t[stock.c.length - 1] * 1000, "x").format("DD MMM YYYY HH:mm"))
+					.title(st.symbol + " → " + st.value)
+					.subtitle(st.datetimeLabel)
 					.images([
-						builder.CardImage.create(session, config.server.external.uri + "/files/" + chartFilename)//"http://j1.forexpf.ru/delta/prochart?type=" + symbol + "&amount=100&chart_height=340&chart_width=660&grtype=2&tictype=4&m_action=zoom_all")
+						builder.CardImage.create(session, st.chart)
 					])
-					.tap(builder.CardAction.openUrl(session, "http://www.forexpf.ru/" + symbol.toLowerCase() + "/"))
+					.tap(builder.CardAction.openUrl(session, st.link))
 			]);
 		session.endDialog(msg);
 	}
@@ -135,80 +125,20 @@ bot.dialog("stock", [
 bot.dialog("weather", [
 	async (session, results) => {
 		session.sendTyping();
-		let time = Math.round(moment().valueOf() / 1000);
-		let response = await fetch("http://api.openweathermap.org/data/2.5/forecast?q=Togliatti,ru&units=metric&appid=b09110cb86a171ccab617ef86ecd2071&lang=ru");
-		let weather = await response.json();
-
-		const createTempLine = (list, date, time, label) => {
-			let data;
-			for (let l of list) {
-				if (l.dt_txt.indexOf(date + " " + time) > -1) {
-					data = l;
-					break;
-				}
-			}
-			if (!data) { return; }
-			return new builder.ThumbnailCard(session)
-				.title((data.main.temp < 0 ? "" : "+") + data.main.temp + " °C")
-				.subtitle(moment(date, "YYYY-MM-DD").format("DD.MM.YYYY"))
-				.text(data.weather[0].description)
-				.images([
-					builder.CardImage.create(session, "http://openweathermap.org/img/w/" + data.weather[0].icon + ".png")
-				]);
-				// .buttons([
-				// 	builder.CardAction.openUrl(session, 'https://docs.botframework.com/en-us/', 'Get Started')
-				// ]);
-
-			// return new builder.HeroCard(session)
-			// 	.title((data.main.temp < 0 ? "" : "+") + data.main.temp + " °C")
-			// 	.subtitle(moment(date, "YYYY-MM-DD").format("DD.MM.YYYY"))
-			// 	.images([
-			// 		builder.CardImage.create(session, "http://openweathermap.org/img/w/" + data.weather[0].icon + ".png")//"http://j1.forexpf.ru/delta/prochart?type=" + symbol + "&amount=100&chart_height=340&chart_width=660&grtype=2&tictype=4&m_action=zoom_all")
-			// 	])
-			// 	.tap(builder.CardAction.openUrl(session, "http://gismeteo.ru"))
-
-			// return builder.ReceiptItem
-			// 	.create(session, (data.main.temp < 0 ? "" : "+") + data.main.temp + " °C", label)
-			// 	.subtitle(data.weather[0].description)
-			// 	.image(builder.CardImage.create(session, "http://openweathermap.org/img/w/" + data.weather[0].icon + ".png"));
-		};
-
+		let weathers = await WeatherService.get(2);
 		let cards = [];
-		let dates = weather.list.reduce((p, c) => {
-			let date = moment(c.dt * 1000, "x").format("YYYY-MM-DD");
-			if (!p.includes(date)) {
-				p.push(date);
-			}
-			return p;
-		}, []);
-		let items = [];
-		for (let i = 0; i < 2; i++) {
-			let date = dates[i];
-			let line = createTempLine(weather.list, date, "12:00", moment(date, "YYYY-MM-DD").format("DD.MM.YYYY")) || createTempLine(weather.list, date, "21:00", moment(date, "YYYY-MM-DD").format("DD.MM.YYYY"))
-			items.push(line);
-			// let items = [
-			// 	// createTempLine(weather.list, date, "03:00", "Ночь"),
-			// 	// createTempLine(weather.list, date, "06:00", "Утро"),
-			// 	// createTempLine(weather.list, date, "15:00", "День"),
-			// 	// createTempLine(weather.list, date, "21:00", "Вечер")
-			// 	createTempLine(weather.list, date, "12:00", date)
-			// ].filter(item => !!item);
-			// if (!items.length) { break; }
-			// let card = new builder.ReceiptCard(session)
-			// 	.title(moment(date, "YYYY-MM-DD").format("DD.MM.YYYY"))
-			// 	.items(items);
-			// cards.push(card);
+		for (let weather of weathers) {
+			let w = weather.day || weather.evening;
+			let card = new builder.ThumbnailCard(session)
+				.title((w.main.temp < 0 ? "" : "+") + w.main.temp + " °C")
+				.subtitle(weather.dateLabel)
+				.text(w.weather[0].description)
+				.images([
+					builder.CardImage.create(session, w.image)
+				]);
+			cards.push(card);
 		}
-
-		let msg = new builder.Message(session)
-			.attachments(items);
-		//.attachmentLayout(builder.AttachmentLayout.carousel)
-		// .attachments([
-		// 	new builder.ReceiptCard(session)
-		// 		//.title(moment(date, "YYYY-MM-DD").format("DD.MM.YYYY"))
-		// 		.items(items)
-		// ]);
-
+		let msg = new builder.Message(session).attachments(cards);
 		session.endDialog(msg);
 	}
 ]).triggerAction({ matches: /weather/i });
@@ -216,62 +146,7 @@ bot.dialog("weather", [
 bot.dialog("joke", [
 	async (session, results) => {
 		session.sendTyping();
-
-		let response = await fetch("http://www.umori.li/api/get?site=bash.im&name=bash&num=1");
-		let jokes = await response.json();
-		let joke = jokes[0];
-
-		// let card = new builder.HeroCard(session)
-		// 	// .title('BotFramework Hero Card')
-		// 	.subtitle(joke.site + " - " + joke.desc)
-		// 	.text(sanitizeHtml(joke.elementPureHtml, {
-		// 		allowedTags: [],
-		// 		allowedAttributes: {}
-		// 	}));
-
-		// let msg = new builder.Message(session)
-		// 	.textFormat(builder.TextFormat.xml)
-		// 	.attachments([card]);
-		let msg = sanitizeHtml(joke.elementPureHtml, { allowedTags: [], allowedAttributes: {} }) + "\n\n*" + joke.site + " - " + joke.desc + "* :)";
+		let msg = await JokeService.get();
 		session.send(msg).endDialog();
 	}
 ]).triggerAction({ matches: /joke/i });
-
-
-
-const createChart = (labels, values) => {
-	return new Promise((resolve, reject) => {
-		const Canvas = require("canvas");
-		const canvas = new Canvas(660, 340);
-		const ctx = canvas.getContext("2d");
-		const Chart = require("nchart");
-		const fs = require("fs");
-
-		new Chart(ctx).Line(
-			{
-				labels: labels,
-				datasets: [
-					{
-						fillColor: "rgba(0,0,220,0.2)",
-						strokeColor: "rgba(0,0,220,0.8)",
-						pointColor: "rgba(0,0,220,1)",
-						pointStrokeColor: "#fff",
-						pointHighlightFill: "#fff",
-						pointHighlightStroke: "rgba(220,220,220,1)",
-						data: values
-					}
-				]
-			}
-		);
-
-		canvas.toBuffer((err, buf) => {
-			if (err) { return reject(err); }
-			let filename = "chart-" + moment().valueOf() + ".png";
-			fs.writeFile(path.join(config.filesStore, filename), buf, (err) => {
-				resolve(filename);
-			});
-		});
-	});
-};
-
-//createChart();
