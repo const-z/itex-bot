@@ -25,10 +25,14 @@ const connector = new builder.ChatConnector({
 	appPassword: config.bot.appPassword
 });
 server.post("/", connector.listen());
+
 server.get("/files/:filename", (request, response) => {
 	fs.readFile(path.join(config.filesStore, request.params.filename), (err, data) => {
 		if (err) {
 			return response.send(404);
+		}
+		if (request.params.filename.indexOf(".png") > -1) {
+			response.setHeader("content-type", "image/png");
 		}
 		response.write(data);
 		response.end();
