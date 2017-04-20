@@ -113,10 +113,11 @@ bot.dialog("stock", [
 
 		let stock = await response.json();
 		let timeLabels = stock.t.map(item => {
-			return moment(item * 1000, "x").format("HH DD:MM");
+			//return moment(item * 1000, "x").format("HH DD:MM");
+			return "";
 		});
 		let chartFilename = await createChart(timeLabels, stock.c);
-		console.log("created chart", config.server.external.uri + "/files/" + chartFilename);
+		//console.log("created chart", config.server.external.uri + "/files/" + chartFilename);
 		let msg = new builder.Message(session)
 			.attachments([
 				new builder.HeroCard(session)
