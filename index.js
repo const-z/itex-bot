@@ -162,7 +162,8 @@ bot.dialog("weather", [
 			}
 			return p;
 		}, []);
-		for (let date of dates) {
+		for (let i=0; i < 2; i++) {
+			let date = dates[i];
 			let items = [
 				createTempLine(weather.list, date, "03:00", "Ночь"),
 				createTempLine(weather.list, date, "06:00", "Утро"),
@@ -177,7 +178,7 @@ bot.dialog("weather", [
 		}
 
 		let msg = new builder.Message(session)
-			.attachmentLayout(builder.AttachmentLayout.carousel)
+			//.attachmentLayout(builder.AttachmentLayout.carousel)
 			.attachments(cards);
 
 		session.endDialog(msg);
