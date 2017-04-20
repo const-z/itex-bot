@@ -162,24 +162,32 @@ bot.dialog("weather", [
 			}
 			return p;
 		}, []);
-		for (let i=0; i < 2; i++) {
+		let items = [];
+		for (let i = 0; i < 2; i++) {
 			let date = dates[i];
-			let items = [
-				createTempLine(weather.list, date, "03:00", "Ночь"),
-				createTempLine(weather.list, date, "06:00", "Утро"),
-				createTempLine(weather.list, date, "15:00", "День"),
-				createTempLine(weather.list, date, "21:00", "Вечер")
-			].filter(item => !!item);
-			if (!items.length) { break; }
-			let card = new builder.ReceiptCard(session)
-				.title(moment(date, "YYYY-MM-DD").format("DD.MM.YYYY"))
-				.items(items);
-			cards.push(card);
+			let line = createTempLine(weather.list, date, "12:00", moment(date, "YYYY-MM-DD").format("DD.MM.YYYY")) || createTempLine(weather.list, date, "21:00", moment(date, "YYYY-MM-DD").format("DD.MM.YYYY"))
+			items.push(line);
+			// let items = [
+			// 	// createTempLine(weather.list, date, "03:00", "Ночь"),
+			// 	// createTempLine(weather.list, date, "06:00", "Утро"),
+			// 	// createTempLine(weather.list, date, "15:00", "День"),
+			// 	// createTempLine(weather.list, date, "21:00", "Вечер")
+			// 	createTempLine(weather.list, date, "12:00", date)
+			// ].filter(item => !!item);
+			// if (!items.length) { break; }
+			// let card = new builder.ReceiptCard(session)
+			// 	.title(moment(date, "YYYY-MM-DD").format("DD.MM.YYYY"))
+			// 	.items(items);
+			// cards.push(card);
 		}
 
 		let msg = new builder.Message(session)
 			//.attachmentLayout(builder.AttachmentLayout.carousel)
-			.attachments(cards);
+			.attachments([
+				new builder.ReceiptCard(session)
+					//.title(moment(date, "YYYY-MM-DD").format("DD.MM.YYYY"))
+					.items(items)
+			]);
 
 		session.endDialog(msg);
 	}
