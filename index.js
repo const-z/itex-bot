@@ -186,19 +186,19 @@ bot.dialog("joke", [
 		let jokes = await response.json();
 		let joke = jokes[0];
 
-		let card = new builder.HeroCard(session)
-			// .title('BotFramework Hero Card')
-			.subtitle(joke.site + " - " + joke.desc)
-			.text(sanitizeHtml(joke.elementPureHtml, {
-				allowedTags: [],
-				allowedAttributes: {}
-			}));
+		// let card = new builder.HeroCard(session)
+		// 	// .title('BotFramework Hero Card')
+		// 	.subtitle(joke.site + " - " + joke.desc)
+		// 	.text(sanitizeHtml(joke.elementPureHtml, {
+		// 		allowedTags: [],
+		// 		allowedAttributes: {}
+		// 	}));
 
-		let msg = new builder.Message(session)
-			.textFormat(builder.TextFormat.xml)
-			.attachments([card]);
-
-		session.endDialog(msg);
+		// let msg = new builder.Message(session)
+		// 	.textFormat(builder.TextFormat.xml)
+		// 	.attachments([card]);
+		let msg = sanitizeHtml(joke.elementPureHtml, { allowedTags: [], allowedAttributes: {} }) + "\n\n*" + joke.site + " - " + joke.desc + "* :)";
+		session.send(msg).endDialog();
 	}
 ]).triggerAction({ matches: /joke/i });
 
