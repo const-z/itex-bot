@@ -10,13 +10,17 @@ try {
 
 if (!config) {
 	config = {
-		bot:{
+		bot: {
 			appId: "",
 			appPassword: ""
 		},
 		server: {
-			port: 3978
-		}
+			port: 3978,
+			external: {
+				uri: "http://localhost:3978"
+			}
+		},
+		filesStore: "./.etc/files"
 	}
 }
 

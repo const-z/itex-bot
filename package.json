@@ -10,8 +10,11 @@
   "license": "ISC",
   "dependencies": {
     "botbuilder": "^3.7.0",
+    "canvas": "^1.6.5",
     "moment": "^2.18.1",
+    "nchart": "^1.0.1",
     "node-fetch": "^1.6.3",
-    "restify": "^4.3.0"
+    "restify": "^4.3.0",
+    "sanitize-html": "^1.14.1"
   }
 }
