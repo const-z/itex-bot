@@ -112,6 +112,7 @@ bot.dialog("stock", [
 			return moment(item * 1000, "x").format("HH DD:MM");
 		});
 		let chartFilename = await createChart(timeLabels, stock.c);
+		console.log("created chart", config.server.external.uri + "/files/" + chartFilename);
 		let msg = new builder.Message(session)
 			.attachments([
 				new builder.HeroCard(session)
