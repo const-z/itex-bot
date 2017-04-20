@@ -148,10 +148,29 @@ bot.dialog("weather", [
 				}
 			}
 			if (!data) { return; }
-			return builder.ReceiptItem
-				.create(session, (data.main.temp < 0 ? "" : "+") + data.main.temp + " °C", label)
-				.subtitle(data.weather[0].description)
-				.image(builder.CardImage.create(session, "http://openweathermap.org/img/w/" + data.weather[0].icon + ".png"));
+			return new builder.ThumbnailCard(session)
+				.title((data.main.temp < 0 ? "" : "+") + data.main.temp + " °C")
+				.subtitle(moment(date, "YYYY-MM-DD").format("DD.MM.YYYY"))
+				.text(data.weather[0].description)
+				.images([
+					builder.CardImage.create(session, "http://openweathermap.org/img/w/" + data.weather[0].icon + ".png")
+				]);
+				// .buttons([
+				// 	builder.CardAction.openUrl(session, 'https://docs.botframework.com/en-us/', 'Get Started')
+				// ]);
+
+			// return new builder.HeroCard(session)
+			// 	.title((data.main.temp < 0 ? "" : "+") + data.main.temp + " °C")
+			// 	.subtitle(moment(date, "YYYY-MM-DD").format("DD.MM.YYYY"))
+			// 	.images([
+			// 		builder.CardImage.create(session, "http://openweathermap.org/img/w/" + data.weather[0].icon + ".png")//"http://j1.forexpf.ru/delta/prochart?type=" + symbol + "&amount=100&chart_height=340&chart_width=660&grtype=2&tictype=4&m_action=zoom_all")
+			// 	])
+			// 	.tap(builder.CardAction.openUrl(session, "http://gismeteo.ru"))
+
+			// return builder.ReceiptItem
+			// 	.create(session, (data.main.temp < 0 ? "" : "+") + data.main.temp + " °C", label)
+			// 	.subtitle(data.weather[0].description)
+			// 	.image(builder.CardImage.create(session, "http://openweathermap.org/img/w/" + data.weather[0].icon + ".png"));
 		};
 
 		let cards = [];
@@ -182,12 +201,13 @@ bot.dialog("weather", [
 		}
 
 		let msg = new builder.Message(session)
-			//.attachmentLayout(builder.AttachmentLayout.carousel)
-			.attachments([
-				new builder.ReceiptCard(session)
-					//.title(moment(date, "YYYY-MM-DD").format("DD.MM.YYYY"))
-					.items(items)
-			]);
+			.attachments(items);
+		//.attachmentLayout(builder.AttachmentLayout.carousel)
+		// .attachments([
+		// 	new builder.ReceiptCard(session)
+		// 		//.title(moment(date, "YYYY-MM-DD").format("DD.MM.YYYY"))
+		// 		.items(items)
+		// ]);
 
 		session.endDialog(msg);
 	}
