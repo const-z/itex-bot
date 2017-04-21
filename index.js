@@ -46,7 +46,7 @@ const bot = new builder.UniversalBot(connector);
 //=========================================================
 
 bot.on("receive", (message) => {
-	console.log(JSON.stringify(message));
+	config.debug && console.log(JSON.stringify(message));
 });
 
 bot.on("conversationUpdate", (message) => {

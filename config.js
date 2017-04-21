@@ -10,6 +10,7 @@ try {
 
 if (!config) {
 	config = {
+		debug: false,
 		bot: {
 			appId: "",
 			appPassword: ""
