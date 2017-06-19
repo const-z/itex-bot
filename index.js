@@ -66,7 +66,7 @@ bot.dialog("/", [
 
 bot.dialog("menu", [
 	session => {
-		builder.Prompts.choice(session, "", ["Курс валюты", "Погода", "Анекдот"], { listStyle: builder.ListStyle.button });
+		builder.Prompts.choice(session, "---", ["Курс валюты", "Погода", "Анекдот"], { listStyle: builder.ListStyle.button });
 	},
 	(session, results) => {
 		switch (results.response.index) {
@@ -91,7 +91,7 @@ bot.dialog("menu", [
 
 bot.dialog("stock", [
 	session => {
-		builder.Prompts.choice(session, "", ["USDRUB", "EURRUB"], { listStyle: builder.ListStyle.button });
+		builder.Prompts.choice(session, "---", ["USDRUB", "EURRUB"], { listStyle: builder.ListStyle.button });
 	},
 	async (session, results) => {
 		session.sendTyping();

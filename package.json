@@ -9,11 +9,11 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "botbuilder": "^3.7.0",
+    "botbuilder": "^3.8.4",
     "canvas": "^1.6.5",
     "moment": "^2.18.1",
     "nchart": "^1.0.1",
-    "node-fetch": "^1.6.3",
+    "node-fetch": "^1.7.1",
     "restify": "^4.3.0",
     "sanitize-html": "^1.14.1"
   }
